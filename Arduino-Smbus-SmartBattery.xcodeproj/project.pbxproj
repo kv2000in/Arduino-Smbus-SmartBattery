@@ -6,10 +6,17 @@
 	objectVersion = 50;
 	objects = {
 
+/* Begin PBXFileReference section */
+		2A0141D4224DBBB8009B5745 /* SMBus-smart-Battery-Read-0-1 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "SMBus-smart-Battery-Read-0-1"; sourceTree = "<group>"; };
+		2A0141D522501BDD009B5745 /* ExtractSMBUSfromCSV.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = ExtractSMBUSfromCSV.py; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
 /* Begin PBXGroup section */
 		2A0141CD224DBB77009B5745 = {
 			isa = PBXGroup;
 			children = (
+				2A0141D522501BDD009B5745 /* ExtractSMBUSfromCSV.py */,
+				2A0141D4224DBBB8009B5745 /* SMBus-smart-Battery-Read-0-1 */,
 			);
 			sourceTree = "<group>";
 		};

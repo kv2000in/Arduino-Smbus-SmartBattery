@@ -55,7 +55,7 @@
   #define BATT_SMBUS_MANUFACTURE_DATA         0x23                ///< manufacturer data
   #define BATT_SMBUS_MANUFACTURE_INFO         0x25                ///< cell voltage register
   #define BATT_SMBUS_MANUFACTURE_ACCESS       0x00                ///< Manufacture access
-  #define BATT_SMBUS_MANUFACTURE_F_VER        0x0002                ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_F_VER        0x02               ///< Manufacture access  
   #define BATT_SMBUS_CURRENT                  0x2a                ///< current register
   #define BATT_SMBUS_MEASUREMENT_INTERVAL_US  (1000000 / 10)      ///< time in microseconds, measure at 10hz
   #define BATT_SMBUS_TIMEOUT_US               10000000            ///< timeout looking for battery 10seconds after startup
@@ -113,7 +113,7 @@ void setup()
  
     i2c_init();                                             //i2c_start initialized the I2C system.  will return false if bus is locked.
     Serial.println("I2C Inialized");
-    scan();
+    //scan();
 }
 
 int fetchWord(byte func)
@@ -147,28 +147,19 @@ uint8_t i2c_smbus_read_block ( uint8_t command, uint8_t* blockBuffer, uint8_t bl
     return num_bytes;
 }
 
-uint8_t i2c_smbus_manf_access ( uint8_t command, uint16_t myword, uint8_t* blockBuffer, uint8_t blockBufferLen )
+void i2c_smbus_manf_access ( uint8_t command, uint8_t myword)
 {
-    uint8_t x, num_bytes;
+
     i2c_start((deviceAddress<<1) + I2C_WRITE);
     i2c_write(command);
     i2c_write(myword);
+    i2c_write(0x00);
     i2c_stop();
-    i2c_start((deviceAddress<<1) + I2C_WRITE);
-    i2c_write(command);
-    i2c_rep_start((deviceAddress<<1) + I2C_READ); 
-        
-    num_bytes = i2c_read(false);                              //num of bytes; 1 byte will be index 0
-    num_bytes = constrain(num_bytes,0,blockBufferLen-2);      //room for null at the end
-    for (x=0; x<num_bytes-1; x++) {                           //-1 because x=num_bytes-1 if x<y; last byte needs to be "nack"'d, x<y-1
-      blockBuffer[x] = i2c_read(false);
-    }
-    blockBuffer[x++] = i2c_read(true);                        //this will nack the last byte and store it in x's num_bytes-1 address.
-    blockBuffer[x] = 0;                                       // and null it at last_byte+1
-    i2c_stop();
-    return num_bytes;
 }
-void scan()
+
+/*
+ 
+ void scan()
 {
     byte i = 0;
     for ( i= 0; i < 127; i++  )
@@ -187,129 +178,132 @@ void scan()
       i2c_stop();
     }
 }
-
+*/
 void loop()
 {
     uint8_t length_read = 0;
  
-    Serial.print("Manufacturer Name: ");
-    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_NAME, i2cBuffer, bufferLen);
-    Serial.write(i2cBuffer, length_read);
-    Serial.println("");
- 
+//    Serial.print("Manufacturer Name: ");
+//    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_NAME, i2cBuffer, bufferLen);
+//    Serial.write(i2cBuffer, length_read);
+//    Serial.println("");
+// 
     Serial.print("Manufacturer Data: ");
-    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_DATA, i2cBuffer, bufferLen);
-    Serial.write(i2cBuffer, length_read);
-    Serial.println("");
- 
-    Serial.print("Manufacturer Info: ");
-    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_INFO, i2cBuffer, bufferLen);
-    Serial.write(i2cBuffer, length_read);
-    Serial.println("");
+    i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER);
+//    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_DATA, i2cBuffer, bufferLen);
+//    Serial.write(i2cBuffer, length_read);
+//    Serial.println("");
+    Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_ACCESS));
+//    Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_DATA));
+// 
+//    Serial.print("Manufacturer Info: ");
+//    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_INFO, i2cBuffer, bufferLen);
+//    Serial.write(i2cBuffer, length_read);
+//    Serial.println("");
 
-    Serial.print("Manufacturer access: ");
-    length_read = i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER, i2cBuffer, bufferLen);
-    Serial.write(i2cBuffer, length_read);
-    //Serial.print(i2cBuffer);
-    Serial.println("");
+//    Serial.print("Manufacturer access: ");
+//    i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER, i2cBuffer, bufferLen);
+//    Serial.write(i2cBuffer, length_read);
+//    //Serial.print(i2cBuffer);
+//    Serial.println("");
  
-    Serial.print("Design Capacity: " );
-    Serial.println(fetchWord(BATT_SMBUS_DESIGN_CAPACITY));
- 
-    Serial.print("Design Voltage: " );
-    Serial.println(fetchWord(BATT_SMBUS_DESIGN_VOLTAGE));
- 
-    Serial.print("Serial Number: ");
-    Serial.println(fetchWord(BATT_SMBUS_SERIALNUM));
- 
-    Serial.print("Voltage: ");
-    Serial.println((float)fetchWord(BATT_SMBUS_VOLTAGE)/1000);
- 
-    Serial.print("Full Charge Capacity: " );
-    Serial.println(fetchWord(BATT_SMBUS_FULL_CHARGE_CAPACITY));
- 
-    Serial.print("Remaining Capacity: " );
-    Serial.println(fetchWord(BATT_SMBUS_REMAINING_CAPACITY));
- 
-    Serial.print("Temp: ");
-    unsigned int tempk = fetchWord(BATT_SMBUS_TEMP);
-    Serial.println((float)tempk/10.0-273.15);
- 
-    Serial.print("Current (mA): " );
-    Serial.println(fetchWord(BATT_SMBUS_CURRENT));
-
-    Serial.print("Device Name: ");
-    length_read = i2c_smbus_read_block(DEV_NAME, i2cBuffer, bufferLen);
-    Serial.write(i2cBuffer, length_read);
-    Serial.println("");
-
-    Serial.print("Chemistry ");
-    length_read = i2c_smbus_read_block(CELL_CHEM, i2cBuffer, bufferLen);
-    Serial.write(i2cBuffer, length_read);
-    Serial.println("");
-
-    String formatted_date = "Manufacture Date (Y-M-D): ";
-    int mdate = fetchWord(MFG_DATE);
-    int mday = B00011111 & mdate;
-    int mmonth = mdate>>5 & B00001111;
-    int myear = 1980 + (mdate>>9 & B01111111);
-    formatted_date += myear;
-    formatted_date += "-";
-    formatted_date += mmonth;
-    formatted_date += "-";
-    formatted_date += mday;
-    Serial.println(formatted_date);
-
-    Serial.print("Specification Info: ");
-    Serial.println(fetchWord(SPEC_INFO));
- 
-    Serial.print("Cycle Count: " );
-    Serial.println(fetchWord(CYCLE_COUNT));
- 
-    Serial.print("Relative Charge(%): ");
-    Serial.println(fetchWord(RELATIVE_SOC));
- 
-    Serial.print("Absolute Charge(%): ");
-    Serial.println(fetchWord(ABSOLUTE_SOC));
- 
-    Serial.print("Minutes remaining for full charge: ");
-    Serial.println(fetchWord(TIME_TO_FULL));
- 
-    // These aren't part of the standard, but work with some packs.
-    // They don't work with the Lenovo and Dell packs we've tested
-    Serial.print("Cell 1 Voltage: ");
-    Serial.println(fetchWord(CELL1_VOLTAGE));
-    Serial.print("Cell 2 Voltage: ");
-    Serial.println(fetchWord(CELL2_VOLTAGE));
-    Serial.print("Cell 3 Voltage: ");
-    Serial.println(fetchWord(CELL3_VOLTAGE));
-    Serial.print("Cell 4 Voltage: ");
-    Serial.println(fetchWord(CELL4_VOLTAGE));
- 
-    Serial.print("State of Health: ");
-    Serial.println(fetchWord(STATE_OF_HEALTH));
- 
-    Serial.print("Battery Mode (BIN): 0b");
-    Serial.println(fetchWord(BATTERY_MODE),BIN);
-    //Serial.println(fetchWord(BATTERY_MODE));
- 
-    Serial.print("Battery Status (BIN): 0b");
-    Serial.println(fetchWord(BATTERY_STATUS),BIN);
-    //Serial.println(fetchWord(BATTERY_STATUS));
-    Serial.print("Charging Current: ");
-    Serial.println(fetchWord(CHARGING_CURRENT));
- 
-    Serial.print("Charging Voltage: ");
-    Serial.println(fetchWord(CHARGING_VOLTAGE));
- 
-    Serial.print("Current (mA): " );
-    Serial.println(fetchWord(CURRENT));
-
-    Serial.print("Safety Status: " );
-    Serial.println(fetchWord(SAFETY_STATUS),BIN);
-
-    Serial.print("Pack Voltage: " );
-    Serial.println(fetchWord(PACK_VOLTAGE));
-    Serial.println(".");
-    delay(60000);
+//    Serial.print("Design Capacity: " );
+//    Serial.println(fetchWord(0xFF),BIN); //0001 0001 1001 0100 = 4500
+// 
+//    Serial.print("Design Voltage: " );
+//    Serial.println(fetchWord(BATT_SMBUS_DESIGN_VOLTAGE));
+// 
+//    Serial.print("Serial Number: ");
+//    Serial.println(fetchWord(BATT_SMBUS_SERIALNUM));
+// 
+//    Serial.print("Voltage: ");
+//    Serial.println((float)fetchWord(BATT_SMBUS_VOLTAGE)/1000);
+// 
+//    Serial.print("Full Charge Capacity: " );
+//    Serial.println(fetchWord(BATT_SMBUS_FULL_CHARGE_CAPACITY));
+// 
+//    Serial.print("Remaining Capacity: " );
+//    Serial.println(fetchWord(BATT_SMBUS_REMAINING_CAPACITY));
+// 
+//    Serial.print("Temp: ");
+//    unsigned int tempk = fetchWord(BATT_SMBUS_TEMP);
+//    Serial.println((float)tempk/10.0-273.15);
+// 
+//    Serial.print("Current (mA): " );
+//    Serial.println(fetchWord(BATT_SMBUS_CURRENT));
+//
+//    Serial.print("Device Name: ");
+//    length_read = i2c_smbus_read_block(DEV_NAME, i2cBuffer, bufferLen);
+//    Serial.write(i2cBuffer, length_read);
+//    Serial.println("");
+//
+//    Serial.print("Chemistry ");
+//    length_read = i2c_smbus_read_block(CELL_CHEM, i2cBuffer, bufferLen);
+//    Serial.write(i2cBuffer, length_read);
+//    Serial.println("");
+//
+//    String formatted_date = "Manufacture Date (Y-M-D): ";
+//    int mdate = fetchWord(MFG_DATE);
+//    int mday = B00011111 & mdate;
+//    int mmonth = mdate>>5 & B00001111;
+//    int myear = 1980 + (mdate>>9 & B01111111);
+//    formatted_date += myear;
+//    formatted_date += "-";
+//    formatted_date += mmonth;
+//    formatted_date += "-";
+//    formatted_date += mday;
+//    Serial.println(formatted_date);
+//
+//    Serial.print("Specification Info: ");
+//    Serial.println(fetchWord(SPEC_INFO));
+// 
+//    Serial.print("Cycle Count: " );
+//    Serial.println(fetchWord(CYCLE_COUNT));
+// 
+//    Serial.print("Relative Charge(%): ");
+//    Serial.println(fetchWord(RELATIVE_SOC));
+// 
+//    Serial.print("Absolute Charge(%): ");
+//    Serial.println(fetchWord(ABSOLUTE_SOC));
+// 
+//    Serial.print("Minutes remaining for full charge: ");
+//    Serial.println(fetchWord(TIME_TO_FULL));
+// 
+//    // These aren't part of the standard, but work with some packs.
+//    // They don't work with the Lenovo and Dell packs we've tested
+//    Serial.print("Cell 1 Voltage: ");
+//    Serial.println(fetchWord(CELL1_VOLTAGE));
+//    Serial.print("Cell 2 Voltage: ");
+//    Serial.println(fetchWord(CELL2_VOLTAGE));
+//    Serial.print("Cell 3 Voltage: ");
+//    Serial.println(fetchWord(CELL3_VOLTAGE));
+//    Serial.print("Cell 4 Voltage: ");
+//    Serial.println(fetchWord(CELL4_VOLTAGE));
+// 
+//    Serial.print("State of Health: ");
+//    Serial.println(fetchWord(STATE_OF_HEALTH));
+// 
+//    Serial.print("Battery Mode (BIN): 0b");
+//    Serial.println(fetchWord(BATTERY_MODE),BIN);
+//    //Serial.println(fetchWord(BATTERY_MODE));
+// 
+//    Serial.print("Battery Status (BIN): 0b");
+//    Serial.println(fetchWord(BATTERY_STATUS),BIN);
+//    //Serial.println(fetchWord(BATTERY_STATUS));
+//    Serial.print("Charging Current: ");
+//    Serial.println(fetchWord(CHARGING_CURRENT));
+// 
+//    Serial.print("Charging Voltage: ");
+//    Serial.println(fetchWord(CHARGING_VOLTAGE));
+// 
+//    Serial.print("Current (mA): " );
+//    Serial.println(fetchWord(CURRENT));
+//
+//    Serial.print("Safety Status: " );
+//    Serial.println(fetchWord(SAFETY_STATUS),BIN);
+//
+//    Serial.print("Pack Voltage: " );
+//    Serial.println(fetchWord(PACK_VOLTAGE));
+//    Serial.println(".");
+    delay(5000);
 }
