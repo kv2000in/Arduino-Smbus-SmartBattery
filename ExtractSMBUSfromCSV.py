@@ -117,7 +117,6 @@ def remove_start_stop_from_clock_high_list():
 			if (clock_low_index_list[i-1]<val<obj):
 				for high_val in clock_high_index_list:
 					if (clock_low_index_list[i-1]<high_val<obj):
-						print(high_val)
 						clock_high_index_list.remove(high_val)
 
 		
@@ -146,16 +145,15 @@ def print_binary():
 				else:
 					mybinary.append('0')
 					count+=1
-	mybin=[]
-	myhex=[]
-	mydec=[]
+	mybin={}
+	myhex={}
+	mydec={}
 	mydata=[]
 	myele=""
 	mycount=0
 	for ele in mybinary:
 		if ((ele =="ACK") or (ele == "NACK")):
-			mybin.append(mycount)
-			mybin.append(myele)
+			mybin[mycount]=myele
 			mydata.append(myele)
 			myele=""
 			mycount+=1
@@ -164,14 +162,12 @@ def print_binary():
 	print(mybin)
 	mycount=0
 	for ele in mydata:
-		mydec.append(mycount)
-		mydec.append(int(ele,2))
+		mydec[mycount]=int(ele,2)
 		mycount+=1
 	print(mydec)
 	mycount=0
 	for ele in mydata:
-		myhex.append(mycount)
-		myhex.append(hex(int(ele,2))) #TODO:- add start/stop condition markers in between the data elements.
+		myhex[mycount]=hex(int(ele,2))
 		mycount+=1
 	print(myhex)
 
