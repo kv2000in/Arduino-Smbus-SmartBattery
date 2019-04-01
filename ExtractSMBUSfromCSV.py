@@ -1,6 +1,7 @@
-!#/usr/bin/python
+#!/usr/bin/python
 import csv
-myfile = open('SDS00004.csv','rb')
+import sys
+myfile = open(sys.argv[1],'rb')
 #Get past the initial garbage
 myfile.seek(700)
 #read a line after that so that we start fresh from a newline.
