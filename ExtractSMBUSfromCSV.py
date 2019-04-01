@@ -147,17 +147,33 @@ def print_binary():
 					count+=1
 	mybin=[]
 	myhex=[]
+	mydec=[]
+	mydata=[]
 	myele=""
+	mycount=0
 	for ele in mybinary:
 		if ((ele =="ACK") or (ele == "NACK")):
+			mybin.append(mycount)
 			mybin.append(myele)
+			mydata.append(myele)
 			myele=""
+			mycount+=1
 		else:
 			myele+=ele
 	print(mybin)
-	for ele in mybin:
-		myhex.append(hex(ele)) #Doesn't work as ele is string. TODO:- fix this, add start/stop condition markers in between the data elements.
+	mycount=0
+	for ele in mydata:
+		mydec.append(mycount)
+		mydec.append(int(ele,2))
+		mycount+=1
+	print(mydec)
+	mycount=0
+	for ele in mydata:
+		myhex.append(mycount)
+		myhex.append(hex(int(ele,2))) #TODO:- add start/stop condition markers in between the data elements.
+		mycount+=1
 	print(myhex)
+
 
 	
 	
