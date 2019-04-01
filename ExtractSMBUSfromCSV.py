@@ -1,7 +1,10 @@
 !#/usr/bin/python
 import csv
-myfile = open('SDS00007.csv','rb')
-myfile.seek(597)
+myfile = open('SDS00004.csv','rb')
+#Get past the initial garbage
+myfile.seek(700)
+#read a line after that so that we start fresh from a newline.
+myfile.readline()
 myreader= csv.reader(myfile)
 clock_val=[]
 data_val=[]
@@ -16,7 +19,7 @@ clock_low_index_list=[]
 clock_rising_edge_index_list=[]
 clock_falling_edge_index_list=[]
 def detect_clock_high_low_index():
-	going_high=False
+	going_high=True
 	going_low=False
 	high_start_index=0
 	high_stop_index=0
@@ -49,7 +52,7 @@ data_low_index_list=[]
 data_rising_edge_index_list=[]
 data_falling_edge_index_list=[]
 def detect_data_high_low_index():
-	going_high=False
+	going_high=True
 	going_low=False
 	high_start_index=0
 	high_stop_index=0
@@ -76,32 +79,88 @@ def detect_data_high_low_index():
 				data_low_index_list.append(low_start_index+((low_stop_index-low_start_index)/2))
 
 
+start_condition_index_list=[]
 def detect_start_condition():
 	#Defined as Data line transition from high to low while clock line is high
 	for val in data_falling_edge_index_list:
 		if (float(clock_val[val]) > clock_high):
-			print("Start condition detected at index:")
-			print(val)
+			start_condition_index_list.append(val)
 
 
+stop_condition_index_list=[]
 def detect_stop_condition():
 	#Defined as Data line transition from low to high while clock line is high
 	for val in data_rising_edge_index_list:
 		if (float(clock_val[val]) > clock_high):
-			print("Stop condition detected at index:")
-			print(val)
+			stop_condition_index_list.append(val)
 
 
+start_stop_condition_index_list=[]
+def detect_start_stop_condition():
+	#Defined as Data line transition from high to low while clock line is high
+	for val in data_falling_edge_index_list:
+		if (float(clock_val[val]) > clock_high):
+			start_stop_condition_index_list.append(val)	
+	#Defined as Data line transition from low to high while clock line is high
+	for val in data_rising_edge_index_list:
+		if (float(clock_val[val]) > clock_high):
+			start_stop_condition_index_list.append(val)
+	start_stop_condition_index_list.sort()
+
+
+def remove_start_stop_from_clock_high_list():
+#Start condition - find the clock falling edge immediately after the start condition and rising edge immediately prior to start condition-remove/assign the clock high indices which are in between these edges
+#Go through the start_stop_condition_list - find the clock_low_indices - immediately prior and after each of the values - remove clock_high_indices - which fall between these low indices
+	for val in start_stop_condition_index_list:
+		for i,obj in enumerate(clock_low_index_list):
+			if (clock_low_index_list[i-1]<val<obj):
+				for high_val in clock_high_index_list:
+					if (clock_low_index_list[i-1]<high_val<obj):
+						print(high_val)
+						clock_high_index_list.remove(high_val)
+
+		
+	
+	
 def print_binary():
 	mybinary=[]
+	count=1
 	for val in clock_high_index_list:
-		if (float(data_val[val])>data_high):
-			mybinary.append('1')
+		#check if this clock high index is after a start event
+		if float(val)>float(start_condition_index_list[0]):
+			#look at every 9th clock high signal - between a start and stop index
+			#ACK = data line low
+			#NACK = data line high
+			if ((count%9) == 0):
+				if (float(data_val[val])>data_high):
+					mybinary.append('NACK')
+					count+=1
+				else:
+					mybinary.append('ACK')
+					count+=1
+			else:
+				if (float(data_val[val])>data_high):
+					mybinary.append('1')
+					count+=1
+				else:
+					mybinary.append('0')
+					count+=1
+	mybin=[]
+	myhex=[]
+	myele=""
+	for ele in mybinary:
+		if ((ele =="ACK") or (ele == "NACK")):
+			mybin.append(myele)
+			myele=""
 		else:
-			mybinary.append('0')
-	print(mybinary)
+			myele+=ele
+	print(mybin)
+	for ele in mybin:
+		myhex.append(hex(ele)) #Doesn't work as ele is string. TODO:- fix this, add start/stop condition markers in between the data elements.
+	print(myhex)
 
-
+	
+	
 myfile.close()
 
 
@@ -109,5 +168,8 @@ detect_clock_high_low_index()
 detect_data_high_low_index()
 detect_start_condition()
 detect_stop_condition()
+detect_start_stop_condition()
+remove_start_stop_from_clock_high_list()
+print_binary()
 
 
