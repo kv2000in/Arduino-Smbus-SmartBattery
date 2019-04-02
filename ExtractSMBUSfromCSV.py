@@ -108,7 +108,7 @@ def detect_start_stop_condition():
 			start_stop_condition_index_list.append(val)
 	start_stop_condition_index_list.sort()
 
-
+clock_high_but_start_stop_list=[]
 def remove_start_stop_from_clock_high_list():
 #Start condition - find the clock falling edge immediately after the start condition and rising edge immediately prior to start condition-remove/assign the clock high indices which are in between these edges
 #Go through the start_stop_condition_list - find the clock_low_indices - immediately prior and after each of the values - remove clock_high_indices - which fall between these low indices
@@ -117,7 +117,7 @@ def remove_start_stop_from_clock_high_list():
 			if (clock_low_index_list[i-1]<val<obj):
 				for high_val in clock_high_index_list:
 					if (clock_low_index_list[i-1]<high_val<obj):
-						clock_high_index_list.remove(high_val)
+						clock_high_but_start_stop_list.append(high_val)
 
 		
 	
@@ -139,12 +139,15 @@ def print_binary():
 					mybinary.append('ACK')
 					count+=1
 			else:
-				if (float(data_val[val])>data_high):
-					mybinary.append('1')
-					count+=1
+				if val in clock_high_but_start_stop_list:
+					mybinary.append('S')
 				else:
-					mybinary.append('0')
-					count+=1
+					if (float(data_val[val])>data_high):
+						mybinary.append('1')
+						count+=1
+					else:
+						mybinary.append('0')
+						count+=1
 	mybin={}
 	myhex={}
 	mydec={}
@@ -158,17 +161,33 @@ def print_binary():
 			myele=""
 			mycount+=1
 		else:
-			myele+=ele
+			if ele=='S':
+				mybin[mycount]=ele
+				mydata.append(ele)
+				mycount+=1
+			else:
+				myele+=ele
+	print("BINARY= ")
 	print(mybin)
 	mycount=0
 	for ele in mydata:
-		mydec[mycount]=int(ele,2)
-		mycount+=1
+		if len(ele)>1:#Catches the Start Stop Events
+			mydec[mycount]=int(ele,2)
+			mycount+=1
+		else:
+			mydec[mycount]=ele
+			mycount+=1		
+	print("DECIMAL= ")
 	print(mydec)
 	mycount=0
 	for ele in mydata:
-		myhex[mycount]=hex(int(ele,2))
-		mycount+=1
+		if len(ele)>1:#Catches the Start Stop Events
+			myhex[mycount]=hex(int(ele,2))
+			mycount+=1
+		else:
+			myhex[mycount]=ele
+			mycount+=1
+	print("HEX= ")
 	print(myhex)
 
 
