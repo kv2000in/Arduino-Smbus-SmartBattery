@@ -55,7 +55,9 @@
   #define BATT_SMBUS_MANUFACTURE_DATA         0x23                ///< manufacturer data
   #define BATT_SMBUS_MANUFACTURE_INFO         0x25                ///< cell voltage register
   #define BATT_SMBUS_MANUFACTURE_ACCESS       0x00                ///< Manufacture access
-  #define BATT_SMBUS_MANUFACTURE_F_VER        0x02               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_F_VER        0x01               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_LED_ON       0x32               ///< Manufacture access
+  #define BATT_SMBUS_MANUFACTURE_LED_OFF      0x33               ///< Manufacture access 
   #define BATT_SMBUS_CURRENT                  0x2a                ///< current register
   #define BATT_SMBUS_MEASUREMENT_INTERVAL_US  (1000000 / 10)      ///< time in microseconds, measure at 10hz
   #define BATT_SMBUS_TIMEOUT_US               10000000            ///< timeout looking for battery 10seconds after startup
@@ -156,6 +158,19 @@ void i2c_smbus_manf_access ( uint8_t command, uint8_t myword)
     i2c_write(0x00);
     i2c_stop();
 }
+void i2c_smbus_process_call(uint8_t command, uint8_t myword)
+{
+   i2c_start((deviceAddress<<1) + I2C_WRITE); 
+   i2c_write(command);
+   i2c_write(myword);
+   i2c_write(0x00);
+   i2c_rep_start(deviceAddress<<1 | I2C_READ);             //Sends a repeated start condition, i.e., it starts a new transfer without sending first a stop condition.
+    byte b1 = i2c_read(false);                              //i2c_read Requests to receive a byte from the slave device. If last is true,
+                                                            //then a NAK is sent after receiving the byte finishing the read transfer sequence.
+    byte b2 = i2c_read(true);
+    i2c_stop();
+   
+}
 
 /*
  
@@ -188,13 +203,14 @@ void loop()
 //    Serial.write(i2cBuffer, length_read);
 //    Serial.println("");
 // 
-    Serial.print("Manufacturer Data: ");
-    i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER);
-//    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_DATA, i2cBuffer, bufferLen);
+    //Serial.print("Manufacturer Data: ");
+//    i2c_smbus_process_call(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER);
+    i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_LED_OFF);
+//    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_ACCESS, i2cBuffer, bufferLen);
 //    Serial.write(i2cBuffer, length_read);
 //    Serial.println("");
-    Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_ACCESS));
-//    Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_DATA));
+   //Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_ACCESS));
+    //Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_DATA));
 // 
 //    Serial.print("Manufacturer Info: ");
 //    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_INFO, i2cBuffer, bufferLen);

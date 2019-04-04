@@ -56,6 +56,9 @@
   #define BATT_SMBUS_MANUFACTURE_INFO         0x25                ///< cell voltage register
   #define BATT_SMBUS_MANUFACTURE_ACCESS       0x00                ///< Manufacture access
   #define BATT_SMBUS_MANUFACTURE_F_VER        0x0002                ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_LED_ON       0x32               ///< Manufacture access
+  #define BATT_SMBUS_MANUFACTURE_LED_OFF      0x33               ///< Manufacture access 
+
   #define BATT_SMBUS_CURRENT                  0x2a                ///< current register
   #define BATT_SMBUS_MEASUREMENT_INTERVAL_US  (1000000 / 10)      ///< time in microseconds, measure at 10hz
   #define BATT_SMBUS_TIMEOUT_US               10000000            ///< timeout looking for battery 10seconds after startup
@@ -147,27 +150,38 @@ uint8_t i2c_smbus_read_block ( uint8_t command, uint8_t* blockBuffer, uint8_t bl
     return num_bytes;
 }
 
-uint8_t i2c_smbus_manf_access ( uint8_t command, uint16_t myword, uint8_t* blockBuffer, uint8_t blockBufferLen )
+//uint8_t i2c_smbus_manf_access ( uint8_t command, uint16_t myword, uint8_t* blockBuffer, uint8_t blockBufferLen )
+//{
+//    uint8_t x, num_bytes;
+//    i2c_start((deviceAddress<<1) + I2C_WRITE);
+//    i2c_write(command);
+//    i2c_write(myword);
+//    i2c_stop();
+//    i2c_start((deviceAddress<<1) + I2C_WRITE);
+//    i2c_write(command);
+//    i2c_rep_start((deviceAddress<<1) + I2C_READ); 
+//        
+//    num_bytes = i2c_read(false);                              //num of bytes; 1 byte will be index 0
+//    num_bytes = constrain(num_bytes,0,blockBufferLen-2);      //room for null at the end
+//    for (x=0; x<num_bytes-1; x++) {                           //-1 because x=num_bytes-1 if x<y; last byte needs to be "nack"'d, x<y-1
+//      blockBuffer[x] = i2c_read(false);
+//    }
+//    blockBuffer[x++] = i2c_read(true);                        //this will nack the last byte and store it in x's num_bytes-1 address.
+//    blockBuffer[x] = 0;                                       // and null it at last_byte+1
+//    i2c_stop();
+//    return num_bytes;
+//}
+
+void i2c_smbus_manf_access ( uint8_t command, uint8_t myword)
 {
-    uint8_t x, num_bytes;
+
     i2c_start((deviceAddress<<1) + I2C_WRITE);
     i2c_write(command);
     i2c_write(myword);
+    i2c_write(0x00);
     i2c_stop();
-    i2c_start((deviceAddress<<1) + I2C_WRITE);
-    i2c_write(command);
-    i2c_rep_start((deviceAddress<<1) + I2C_READ); 
-        
-    num_bytes = i2c_read(false);                              //num of bytes; 1 byte will be index 0
-    num_bytes = constrain(num_bytes,0,blockBufferLen-2);      //room for null at the end
-    for (x=0; x<num_bytes-1; x++) {                           //-1 because x=num_bytes-1 if x<y; last byte needs to be "nack"'d, x<y-1
-      blockBuffer[x] = i2c_read(false);
-    }
-    blockBuffer[x++] = i2c_read(true);                        //this will nack the last byte and store it in x's num_bytes-1 address.
-    blockBuffer[x] = 0;                                       // and null it at last_byte+1
-    i2c_stop();
-    return num_bytes;
 }
+// Calling i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_LED_ON); works. Meaning battery is "unsealed".
 void scan()
 {
     byte i = 0;
