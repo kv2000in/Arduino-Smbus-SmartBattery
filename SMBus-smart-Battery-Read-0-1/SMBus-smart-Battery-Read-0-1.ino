@@ -55,7 +55,10 @@
   #define BATT_SMBUS_MANUFACTURE_DATA         0x23                ///< manufacturer data
   #define BATT_SMBUS_MANUFACTURE_INFO         0x25                ///< cell voltage register
   #define BATT_SMBUS_MANUFACTURE_ACCESS       0x00                ///< Manufacture access
-  #define BATT_SMBUS_MANUFACTURE_F_VER        0x0002                ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_DEVICE_TYPE  0x01               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_F_VER        0x02               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_HW_VER       0x03               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_MANUF_STATUS 0x06               ///< Manufacture access  
   #define BATT_SMBUS_MANUFACTURE_LED_ON       0x32               ///< Manufacture access
   #define BATT_SMBUS_MANUFACTURE_LED_OFF      0x33               ///< Manufacture access 
 
@@ -88,6 +91,8 @@
 //END BUS MAPPINGS
 #define SAFETY_STATUS            0x51
 #define PACK_VOLTAGE             0x5A
+#define EXTENDED_SBS_FET_STATUS  0x46
+#define EXTENDED_SBS_FET_CONTROL 0x00               ///0x02 to turn on the discharge FET. 0x00 to turn off the discharge FET
 
   #define bufferLen 32
   uint8_t i2cBuffer[bufferLen];
@@ -117,6 +122,8 @@ void setup()
     i2c_init();                                             //i2c_start initialized the I2C system.  will return false if bus is locked.
     Serial.println("I2C Inialized");
     scan();
+//i2c_smbus_manf_access(EXTENDED_SBS_FET_STATUS,EXTENDED_SBS_FET_CONTROL); Able to turn on and turn off discharge FET
+//delay(100);
 }
 
 int fetchWord(byte func)
@@ -182,6 +189,12 @@ void i2c_smbus_manf_access ( uint8_t command, uint8_t myword)
     i2c_stop();
 }
 // Calling i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_LED_ON); works. Meaning battery is "unsealed".
+/*
+This code works for manufacturer access commands (write word and read word sequence)
+i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_DEVICE_TYPE);
+delay(20);
+Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_ACCESS));
+*/
 void scan()
 {
     byte i = 0;

@@ -55,9 +55,13 @@
   #define BATT_SMBUS_MANUFACTURE_DATA         0x23                ///< manufacturer data
   #define BATT_SMBUS_MANUFACTURE_INFO         0x25                ///< cell voltage register
   #define BATT_SMBUS_MANUFACTURE_ACCESS       0x00                ///< Manufacture access
-  #define BATT_SMBUS_MANUFACTURE_F_VER        0x01               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_DEVICE_TYPE  0x01               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_F_VER        0x02               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_HW_VER       0x03               ///< Manufacture access  
+  #define BATT_SMBUS_MANUFACTURE_MANUF_STATUS 0x06               ///< Manufacture access  
   #define BATT_SMBUS_MANUFACTURE_LED_ON       0x32               ///< Manufacture access
   #define BATT_SMBUS_MANUFACTURE_LED_OFF      0x33               ///< Manufacture access 
+  #define BATT_SMBUS_MANUFACTURE_OP_STATUS    0x54               ///< Manufacture access 
   #define BATT_SMBUS_CURRENT                  0x2a                ///< current register
   #define BATT_SMBUS_MEASUREMENT_INTERVAL_US  (1000000 / 10)      ///< time in microseconds, measure at 10hz
   #define BATT_SMBUS_TIMEOUT_US               10000000            ///< timeout looking for battery 10seconds after startup
@@ -84,6 +88,9 @@
 #define CELL2_VOLTAGE            0x3E
 #define CELL1_VOLTAGE            0x3F
 #define STATE_OF_HEALTH          0x4F
+#define EXTENDED_SBS_OP_STATUS   0x54
+#define EXTENDED_SBS_FET_STATUS  0x46
+#define EXTENDED_SBS_FET_CONTROL 0x00               ///< Manufacture access 
 //END BUS MAPPINGS
 #define SAFETY_STATUS            0x51
 #define PACK_VOLTAGE             0x5A
@@ -116,6 +123,9 @@ void setup()
     i2c_init();                                             //i2c_start initialized the I2C system.  will return false if bus is locked.
     Serial.println("I2C Inialized");
     //scan();
+
+i2c_smbus_manf_access(EXTENDED_SBS_FET_STATUS,EXTENDED_SBS_FET_CONTROL);
+delay(100);
 }
 
 int fetchWord(byte func)
@@ -194,6 +204,7 @@ void i2c_smbus_process_call(uint8_t command, uint8_t myword)
     }
 }
 */
+
 void loop()
 {
     uint8_t length_read = 0;
@@ -203,13 +214,12 @@ void loop()
 //    Serial.write(i2cBuffer, length_read);
 //    Serial.println("");
 // 
-    //Serial.print("Manufacturer Data: ");
+//    Serial.print("Manufacturer Data: ");
 //    i2c_smbus_process_call(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER);
-    i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_LED_OFF);
-//    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_ACCESS, i2cBuffer, bufferLen);
-//    Serial.write(i2cBuffer, length_read);
-//    Serial.println("");
-   //Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_ACCESS));
+    //i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_MANUF_STATUS); // Returned High Byte 10001111 Low Byte 00001010 
+//  i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_OP_STATUS);// Returned high byte 00000000 Low byte 01000011
+//    delay(20);
+//   Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_ACCESS));
     //Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_DATA));
 // 
 //    Serial.print("Manufacturer Info: ");
@@ -318,8 +328,17 @@ void loop()
 //    Serial.print("Safety Status: " );
 //    Serial.println(fetchWord(SAFETY_STATUS),BIN);
 //
-//    Serial.print("Pack Voltage: " );
-//    Serial.println(fetchWord(PACK_VOLTAGE));
+//    Serial.print("FET STATUS: " );
+//    Serial.println(fetchWord(EXTENDED_SBS_FET_STATUS));
 //    Serial.println(".");
+
+//    Serial.print("Operation Status: " );
+//    Serial.println(fetchWord(EXTENDED_SBS_OP_STATUS));
+//    Serial.println(".");
+
+//      Serial.print("Manufacturer Data: ");
+//      i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_OP_STATUS);// Returned high byte 00000000 Low byte 01000011
+//      delay(20);
+//      Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_ACCESS));
     delay(5000);
 }
