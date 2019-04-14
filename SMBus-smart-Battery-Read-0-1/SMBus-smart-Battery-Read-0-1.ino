@@ -234,11 +234,11 @@ void loop()
     Serial.write(i2cBuffer, length_read);
     Serial.println("");
 
-    Serial.print("Manufacturer access: ");
-    length_read = i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER, i2cBuffer, bufferLen);
-    Serial.write(i2cBuffer, length_read);
-    //Serial.print(i2cBuffer);
-    Serial.println("");
+//    Serial.print("Manufacturer access: ");
+//    length_read = i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER, i2cBuffer, bufferLen);
+//    Serial.write(i2cBuffer, length_read);
+//    //Serial.print(i2cBuffer);
+//    Serial.println("");
  
     Serial.print("Design Capacity: " );
     Serial.println(fetchWord(BATT_SMBUS_DESIGN_CAPACITY));
@@ -332,11 +332,6 @@ void loop()
     Serial.print("Current (mA): " );
     Serial.println(fetchWord(CURRENT));
 
-    Serial.print("Safety Status: " );
-    Serial.println(fetchWord(SAFETY_STATUS),BIN);
 
-    Serial.print("Pack Voltage: " );
-    Serial.println(fetchWord(PACK_VOLTAGE));
-    Serial.println(".");
     delay(60000);
 }

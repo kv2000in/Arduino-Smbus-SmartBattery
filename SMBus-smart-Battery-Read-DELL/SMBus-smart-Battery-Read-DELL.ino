@@ -248,10 +248,10 @@ void loop()
 {
     uint8_t length_read = 0;
  
-//    Serial.print("Manufacturer Name: ");
-//    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_NAME, i2cBuffer, bufferLen);
-//    Serial.write(i2cBuffer, length_read);
-//    Serial.println("");
+    Serial.print("Manufacturer Name: ");
+    length_read = i2c_smbus_read_block(BATT_SMBUS_MANUFACTURE_NAME, i2cBuffer, bufferLen);
+    Serial.write(i2cBuffer, length_read);
+    Serial.println("");
 // 
 //    Serial.print("Manufacturer Data: ");
 //    i2c_smbus_process_call(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_F_VER);
@@ -362,8 +362,8 @@ void loop()
 //    Serial.print("Charging Voltage: ");
 //    Serial.println(fetchWord(CHARGING_VOLTAGE));
 // 
-    Serial.print("Current (mA): " );
-    Serial.println(fetchWord(CURRENT));
+//    Serial.print("Current (mA): " );
+//    Serial.println(fetchWord(CURRENT));
 //
 //    Serial.print("Safety Status: " );
 //    Serial.println(fetchWord(SAFETY_STATUS),BIN); // 01000000
@@ -395,5 +395,5 @@ void loop()
 //      i2c_smbus_manf_access(BATT_SMBUS_MANUFACTURE_ACCESS,BATT_SMBUS_MANUFACTURE_MANUF_STATUS);// Returned high byte 00000000 Low byte 01000011
 //      delay(2);
 //      Serial.println(fetchWord(BATT_SMBUS_MANUFACTURE_ACCESS));
-    delay(1000);
+    delay(5000);
 }
